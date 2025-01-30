@@ -15,7 +15,35 @@ const error = ref(false);
 const isLoading = ref(false);
 const isError = ref(false);
 const config = useRuntimeConfig();
-const { data: categories, status } = await useLazyAsyncData(
+
+const columns = [
+  {
+    key: "id",
+    label: "#SL",
+  },
+  {
+    key: "name",
+    label: "Name",
+    sortable: true,
+  },
+  {
+    key: "slug",
+    label: "Slug",
+  },
+  {
+    key: "status",
+    label: "Status",
+    sortable: true,
+  },
+  {
+    key: "actions",
+    label: "Actions",
+    sortable: false,
+  },
+];
+
+
+const { data: categories, status , execute: getCategories } = await useLazyAsyncData(
   "categories",
   () =>
     ($fetch as any)(`${config.public.apiUrl}/category`, {
@@ -30,6 +58,7 @@ const { data: categories, status } = await useLazyAsyncData(
   }
 );
 
+
 watch(pending, (loading) => {
   isLoading.value = loading;
 });
@@ -43,50 +72,32 @@ const formData = reactive({
   description: "",
 });
 
-const { error: categoryError, execute: createCategory } =
-  await useLazyAsyncData("category-create", () =>
-    ($fetch as any)(`http://localhost:8000/api/category`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accpet: "application/json",
-        "X-XSRF-TOKEN": cookie?.value,
-      },
-      credentials: "include",
-      body: state,
-    })
-  );
+const {
+  status: categoryCreateStatus,
+  error: categoryError,
+  execute: createCategory,
+} = await useLazyAsyncData("category-create", () =>
+  ($fetch as any)(`http://localhost:8000/api/category`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accpet: "application/json",
+      "X-XSRF-TOKEN": cookie?.value,
+    },
+    credentials: "include",
+    body: state,
+  }),{immediate: false}
+);
 
-//console.log(categoryError.value.data.errors.name[0]);
-
-const submitForm = async () => {
-  await createCategory();
-};
-
-const state = reactive({
-  name: undefined,
-  description: undefined,
-});
 
 const form = ref();
 
-async function onSubmit() {
-  form.value!.clear();
-  try {
-    createCategory();
-  } catch (err) {
-    console.log("🚀 ~ onSubmit ~ err:", err);
-
-    if (err.statusCode === 422) {
-      form.value!.setErrors(
-        err.data.errors.map((err) => ({
-          message: err.message,
-          path: err.path,
-        }))
-      );
-    }
-  }
+const onSubmit = () => { 
+  form.value?.clear();
+  isOpen.value = false;
 }
+
+
 </script>
 
 <template>
@@ -125,7 +136,36 @@ async function onSubmit() {
       <UButton @click="isOpen = true">Create</UButton>
     </div>
 
-    <UTable :rows="categories?.data" />
+    <UTable :rows="categories?.data" :columns="columns">
+      <template #status-data="{ row }">
+        <UBadge
+          size="xs"
+          :label="row.status === 'active' ? 'Active' : 'Inactive'"
+          :color="row.status === 'active' ? 'green' : 'orange'"
+        />
+      </template>
+      <template #actions-data="{ row }">
+        <div class="flex gap-2">
+          <!-- Edit Button -->
+          <UButton
+            icon="i-heroicons-pencil-square"
+            size="xs"
+            color="primary"
+            variant="solid"
+            label="Edit"
+          />
+          
+          <!-- Delete Button -->
+          <UButton
+            icon="i-heroicons-trash"
+            size="xs"
+            color="red"
+            variant="solid"
+            label="Delete"
+          />
+        </div>
+      </template>
+    </UTable>
 
     <template #footer>
       <div class="flex justify-end items-center gap-4">
@@ -134,6 +174,16 @@ async function onSubmit() {
       </div>
     </template>
   </UCard>
+
+  <template>
+  <UDrawer direction="top">
+
+    <template #content>
+      <Placeholder class="h-96 m-4" />
+    </template>
+  </UDrawer>
+</template>
+
 
   <USlideover
     v-model="isOpen"
@@ -165,47 +215,26 @@ async function onSubmit() {
             class="-my-1"
             @click="isOpen = false"
           />
+
+          <UButton label="Open" color="neutral" variant="subtle" trailing-icon="i-lucide-chevron-up" />
+
         </div>
       </template>
-      <!-- <UForm :state="formData" @submit.prevent="submitForm">
-        {{ categoryError?.value?.data }}
-        <div class="space-y-3 text-theme-white-2">
-          <div class="space-y-1">
-            <label for="">Name <span class="text-red-500">*</span></label>
-            <UInput
-              color="white"
-              v-model="formData.name"
-              variant="outline"
-              placeholder="Category name..."
-            />
-          </div>
 
-          <div class="space-y-1">
-            <label for="">Description</label>
-            <UTextarea
-              autoresize
-              v-model="formData.description"
-              placeholder="Description..."
-            />
-          </div>
-
-          <UButton type="submit">
-            Submit
-            <template #leading></template>
-          </UButton>
-        </div>
-      </UForm> -->
-
-      <UForm ref="form" :state="state" @submit="onSubmit">
-        <UFormGroup label="Email" name="name">
-          <UInput v-model="state.name" />
+      <UForm ref="form" :state="formData" @submit="onSubmit" class="space-y-3">
+        <UFormGroup label="Name" required name="name">
+          <UInput v-model="formData.name" placeholder="Category name..." />
         </UFormGroup>
 
-        <UFormGroup label="Password" name="description">
-          <UInput v-model="state.description" />
+        <UFormGroup label="Description" name="description">
+          <UTextarea
+            autoresize
+            placeholder="Description..."
+            v-model="formData.description"
+          />
         </UFormGroup>
 
-        <UButton type="submit"> Submit </UButton>
+        <UButton type="submit" :loading="categoryCreateStatus === 'loading'"> Submit </UButton>
       </UForm>
       <template #footer></template>
     </UCard>

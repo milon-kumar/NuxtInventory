@@ -7,7 +7,7 @@ const menus = [
     name: "Dashboard",
     path: "/admin/dashboard",
     icon: "solar:widget-4-linear",
-    color: "primary-400",
+    color: "primary-400 dark:primary-400",
   },
   {
     type: "separator",
@@ -16,31 +16,36 @@ const menus = [
     type: "menu",
     name: "Category",
     path: "/admin/category",
-    icon: "solar:layers-minimalistic-line-duotone",
+    icon: "solar:layers-bold-duotone",
     color: "primary-400",
   },
   {
     type: "menu",
     name: "Unit",
     path: "/admin/unit",
-    icon: "icon-park-solid:split-turn-down-left",
+    icon: "solar:tuning-2-bold-duotone",
     color: "primary-400",
   },
   {
     type: "menu",
     name: "Products",
     path: "/admin/products",
-    icon: "icon-park-solid:health-products",
+    icon: "tabler:brand-producthunt",
     color: "blue-500",
   },
-  {
-    type: "menu",
-    name: "System Categories",
-    path: "/admin/category",
-    icon: "solar:widget-3-outline",
-    color: "violet-500",
-  },
 ];
+
+const actions = [
+  [{
+    key: 'completed',
+    label: 'Completed',
+    icon: 'i-heroicons-check'
+  }], [{
+    key: 'uncompleted',
+    label: 'In Progress',
+    icon: 'i-heroicons-arrow-path'
+  }]
+]
 
 const isActive = (path) => {
   return route.path === path;
@@ -49,7 +54,7 @@ const isActive = (path) => {
 
 <template>
   <div
-    class="w-64 fixed bottom-0 border-r border-theme-dark-2 bg-theme-dark z-50 h-screen"
+    class="w-64 fixed bottom-0 border-r text-white border-theme-dark-2 bg-theme-dark z-50 h-screen"
   >
     <div class="px-3">
       <ul>
@@ -69,10 +74,8 @@ const isActive = (path) => {
               :to="menu?.path"
               class="flex items-center gap-2 px-4 py-2 rounded-md text-sm"
             >
-              <UIcon
-                :name="menu?.icon"
-                :class="`w-4 h-4 text-${menu?.color}`"
-              />
+            <UIcon :name="menu?.icon" class="w-5 h-5" />
+
               <span :class="isActive(menu?.path) && `text-${menu?.color}`">{{
                 menu?.name
               }}</span>

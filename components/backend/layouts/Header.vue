@@ -64,7 +64,7 @@ onMounted(() => {
 
 <template>
   <div 
-    class="bg-white dark:bg-theme-dark h-14 border-b border-theme-dark-2 ml-64 fixed w-[87%] z-10" 
+    class="bg-white dark:bg-theme-dark h-14 border-b dark:border-theme-dark-2 ml-64 fixed w-[87%] z-10" 
     :class="shadowClass"
   >
     <div class="flex justify-between items-center px-4 py-2 h-full">
@@ -77,8 +77,8 @@ onMounted(() => {
           :ui="{
             item: { disabled: 'cursor-text select-text' },
             rounded: 'rounded-sm',
-            ring: 'ring-1 ring-theme-dark-2 dark:ring-theme-dark-2',
-            background: 'bg-theme-dark dark:bg-theme-dark',
+            ring: 'ring-1 dark:ring-theme-dark-2 dark:ring-theme-dark-2',
+            background: 'bg-theme-white dark:bg-theme-dark',
             divide: 'dark:divide-theme-dark-2',
             item: { rounded: 'rounded-sm' },
           }"
